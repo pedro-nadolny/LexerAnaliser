@@ -1,5 +1,4 @@
 require_relative 'lexer'
-
 class Parser 
     def initialize
         @token = Token.new("", "")
@@ -12,8 +11,7 @@ class Parser
         if scanner 
             @get_token = scanner
             @token = @get_token.call
-
-            ast, msg = exp
+            ast, msg = self.Exp
 
             if ast 
                 t, msg = le("EOF")
@@ -32,26 +30,27 @@ class Parser
     end
 
     def le (t)
-        if @token.tipo == t
+        if @token.get_tipo == t
             tk = @token
             @token = @get_token.call
             return tk
         else 
-            return nil, "Expressao invalida: li '%s', mas esperava '%s'" % [@token.tipo, t]
+            return nil, "Expressao invalida: li '%s', mas esperava '%s'" % [@token.get_tipo, t]
         end
     end
 
     #Exp ::= Termo { (+|-) Termo } 
-    def exp
-        exp1, msg = termo
+    def Exp
+        exp1, msg = self.Termo
         if exp1 then
-            while @token.tipo == "+" or @token.tipo == "-"
-                if @token.tipo == "+" then
+            if @token.get_tipo == "+" or @token.get_tipo == "-"
+                if @token.get_tipo == "+" then
+                    
                     op, msg= le("+")
                     if op then
-                        exp2, msg = termo
+                        exp2, msg = self.Termo
                         if exp2 then
-                            exp1 = Hash["tag" => "add", "1" => exp1, "2" => exp2]
+                            return Hash["tag" => "add", "1" => exp1, "2" => exp2]
                         else
                             return nil, msg
                         end
@@ -61,9 +60,9 @@ class Parser
                 else 
                     op, msg= le("-")
                     if op then
-                        exp2, msg = termo
+                        exp2, msg = self.Termo
                         if exp2 then
-                            exp1 = Hash["tag" => "sub", "1" => exp1, "2" => exp2]
+                            return Hash["tag" => "sub", "1" => exp1, "2" => exp2]
                         else
                             return nil, msg
                         end
@@ -71,7 +70,8 @@ class Parser
                         return nil, msg
                     end
                 end
-            return exp1
+            else
+                return exp1
             end
         else
             return nil, msg
@@ -79,16 +79,16 @@ class Parser
     end
 
     #Termo ::= Fator { (*|/) Fator } OK
-    def termo
-        exp1, msg = fator
+    def Termo
+        exp1, msg = self.Fator
         if exp1 then
-            while @token.tipo == "*" or @token.tipo == "/"
-                if @token.tipo == "*" then
+            while @token.get_tipo == "*" or @token.get_tipo == "/"
+                if @token.get_tipo == "*" then
                     op, msg = le("*")
                     if op then
-                        exp2, msg = fator
+                        exp2, msg = self.Fator
                         if exp2 then
-                            exp1 = Hash["tag" => "mul", "1" => exp1, "2" => exp2]
+                            return Hash["tag" => "mul", "1" => exp1, "2" => exp2]
                         else
                             return nil, msg
                         end
@@ -98,31 +98,31 @@ class Parser
                 else 
                     op, msg = le("/")
                     if op then
-                        exp2, msg = fator
+                        exp2, msg = self.Fator
                         if exp2 then
-                            exp1 = Hash["tag" => "div", "1" => exp1, "2" => exp2]
+                            return Hash["tag" => "div", "1" => exp1, "2" => exp2]
                         else
                             return nil, msg
                         end
                     else
                         return nil, msg
                     end
-                end
-            return exp1
+                end            
             end
+        return exp1
         else
             return nil, msg
         end
     end
 
     #Fator ::= - Fator | Pot OK
-    def fator
-        if @token.tipo == "-" then
+    def Fator
+        if @token.get_tipo == "-" then
             op, msg = le("-")
             if op
-                exp2, msg = fator
+                exp2, msg = self.Fator
                 if exp2 
-                    return Hash["tag" => "sub", "1" => 0, "2" => exp2]
+                    return Hash["tag" => "sub", "1" => Hash["tag" => "num", "1" => 0.0], "2" => exp2]
                 else 
                     return nil, msg
                 end
@@ -130,7 +130,7 @@ class Parser
                 return nil, msg
             end
         else
-            pot, msg = Pot
+            pot, msg = self.Pot
             if pot
                 return pot
             else
@@ -140,15 +140,15 @@ class Parser
     end
 
     #Pot ::= Primario ^ Pot | Primario OK
-    def pot
-        exp1, msg = primario
+    def Pot
+        exp1, msg = self.Primario
         if exp1 then
-            if @token.tipo == "^" then
+            if @token.get_tipo == "^" then
                 op, msg = le("^")
                 if op
-                    exp2, msg = Pot
+                    exp2, msg = self.Pot
                     if exp2 then
-                        exp1 = Hash["tag" => "pot", "1" => exp1, "2" => exp2]
+                        return Hash["tag" => "pot", "1" => exp1, "2" => exp2]
                     else
                         return nil, msg
                     end
@@ -162,18 +162,18 @@ class Parser
     end
 
     #Primario ::= ( Exp ) | Num
-    def primario
-        if @token.tipo == "num" then
+    def Primario
+        if @token.get_tipo == "num" then
             t, msg = le("num")
             if t
-                return Hash["tag" => "num", "1" => t.lexema]
+                return Hash["tag" => "num", "1" => t.get_lexama.to_f]
             else
                 return nil, msg
             end
-        elsif @token.tipo == "(" then
+        elsif @token.get_tipo == "(" then
             t, msg = le("(")
             if t then
-                exp1, msg = exp
+                exp1, msg = self.Exp
                 if exp1 then
                     t, msg = le(")")
                     if t then
@@ -189,6 +189,6 @@ class Parser
             end 
         end
 
-        return nil, "Token inesperado, esperava num ou (, encontrou %s" % [@token.tipo]
+        return nil, "Token inesperado, esperava num ou (, encontrou #{@token.get_tipo}"
     end
 end

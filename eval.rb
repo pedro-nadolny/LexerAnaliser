@@ -1,18 +1,35 @@
 require_relative 'parser'
-parser = Parser.new{}
 
 def eval (exp)
-    if exp.tag == "num" then
+
+    if exp["tag"] == "num"
         return exp["1"]
-    elsif exp.tag == "add" then
-        return eval(exp["1"]) + eval(exp["2"])
-    elsif exp.tag == "sub" then
-        return eval(exp["1"]) - eval(exp["2"])
-    elsif exp.tag == "mul" then
-        return eval(exp["1"]) * eval(exp["2"])
-    elsif exp.tag == "div" then
-        return eval(exp["1"]) / eval(exp["2"])
     end
+
+    t = 0
+    oper = 0
+    left = eval(exp["1"])
+    right = eval(exp["2"])
+
+    if exp["tag"] == "add" then        
+        t = left + right 
+        open = "+"
+    elsif exp["tag"] == "sub" then
+        t = left - right
+        open = "-"
+    elsif exp["tag"] == "mul" then
+        t = left * right
+        open = "*"
+    elsif exp["tag"] == "div" then
+        t = left / right
+        open = "/"
+    elsif exp["tag"] == "pot" then
+        t = left ** right
+        open = "^"
+    end
+
+    print("#{left} #{open} #{right} = #{t}\n")
+    return t
 end
 
 if ARGV.length != 1
@@ -20,10 +37,13 @@ if ARGV.length != 1
 end
 
 input = ARGV[0]
+input = input.delete(' ').delete('\n').delete('\t')
+
+parser = Parser.new{}
 ast, msg = parser.parse(input)
 
 if ast then
-  print(eval(ast))
+  eval(ast)
 else
   abort(msg)
 end

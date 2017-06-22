@@ -1,4 +1,5 @@
 class Token
+
    def initialize(tipo, lexama)
       @tipo = tipo
       @lexama = lexama
@@ -7,16 +8,24 @@ class Token
    def print
        puts "Tk(#{@tipo}, #{@lexama})"
    end
+
+   def get_tipo
+        return @tipo
+   end
+
+   def get_lexama
+       return @lexama
+   end
 end
 
 def is_numeric?(obj) 
    obj.to_s.match(/\A[+-]?\d+?(\.\d+)?\Z/) == nil ? false : true
 end
 
+$tokenArray = []
+
 def scan(str = "") 
     i = 0
-    tokenArray = []
-
     while i < str.length
         if str[i] == ' ' or str[i] == '\n' or str[i] == '\t' then
             i =+ 1
@@ -39,7 +48,7 @@ def scan(str = "")
                 temp+=1
                 
                 if (!(is_numeric? str[temp]))
-                    return nil, "Token invalido, esperava \"num\", encontrou %s" % [str[temp]]
+                    return "Token invalido, esperava \"num\", encontrou %s" % [str[temp]]
                 end
 
                 while(is_numeric? str[temp])
@@ -53,61 +62,56 @@ def scan(str = "")
                 end
             end
             i = temp-1
-            tokenArray << Token.new("num", number)
+            $tokenArray << Token.new("num", number)
 
         elsif str[i] == '+'    
-            tokenArray << Token.new("+", "+")
+            $tokenArray << Token.new("+", "+")
 
         elsif str[i] == '-'
-            tokenArray << Token.new("-", "-")
+            $tokenArray << Token.new("-", "-")
     
         elsif str[i] == '*'
-            tokenArray << Token.new("*", "*")
+            $tokenArray << Token.new("*", "*")
 
         elsif str[i] == '/'
-            tokenArray << Token.new("/", "/")
+            $tokenArray << Token.new("/", "/")
         
         elsif str[i] == '('
-            tokenArray << Token.new("(", "(")
+            $tokenArray << Token.new("(", "(")
     
         elsif str[i] == ')'
-            tokenArray << Token.new(")", ")")
+            $tokenArray << Token.new(")", ")")
         
         elsif str[i] == '^'
-            tokenArray << Token.new("^", "^")
+            $tokenArray << Token.new("^", "^")
         
         else
-            return nil, "Caracter desconhecido %s" % [str[i]]
+            return "Caracter desconhecido %s" % [str[i]]
         end
     i=i+1
     end
     
-    if tokenArray.length > 0 
-        puts("ScanReturns: ")
-        puts(tokenArray.class)
-        return tokenArray
+    if $tokenArray.length > 0 
+        return nil
     end
 
-    return nil, "Token invalido: string vazia"    
+    return "Token invalido: string vazia"    
 end
 
 def scanner(input = "") 
-    tokens, msg = scan(input)
-    puts("ScanRead: ")
-    puts(tokens.class)
-
-    if tokens 
+    msg = scan(input)
+    if msg
+        return nil, msg
+    else 
         i = 0
         return Proc.new {
-            if i > tokens.length
-                return Token.new("EOF", "")
+            if i == $tokenArray.length
+                next Token.new("EOF", "")
             end
 
-            t = tokens[i]
+            t = $tokenArray[i]
             i = i + 1
             next t
         }
-    else 
-        return nil, msg
     end
 end
