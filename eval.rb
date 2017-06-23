@@ -1,13 +1,14 @@
+# RUBY VERSION 2.4.1 
+
 require_relative 'parser'
 
 def eval (exp)
-
     if exp["tag"] == "num"
         return exp["1"]
+    elsif exp["tag"] == "neg" then        
+        return -eval(exp["1"])
     end
 
-    t = 0
-    oper = 0
     left = eval(exp["1"])
     right = eval(exp["2"])
 
@@ -29,6 +30,7 @@ def eval (exp)
     end
 
     print("#{left} #{open} #{right} = #{t}\n")
+    $first = false
     return t
 end
 
@@ -43,7 +45,11 @@ parser = Parser.new{}
 ast, msg = parser.parse(input)
 
 if ast then
-  eval(ast)
+    v = eval(ast)
+
+    print("\nResultado: ")
+    print(v)
+    print("\n")
 else
-  abort(msg)
+    abort(msg)
 end

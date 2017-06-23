@@ -122,7 +122,7 @@ class Parser
             if op
                 exp2, msg = self.Fator
                 if exp2 
-                    return Hash["tag" => "sub", "1" => Hash["tag" => "num", "1" => 0.0], "2" => exp2]
+                    return Hash["tag" => "neg", "1" => exp2]
                 else 
                     return nil, msg
                 end
@@ -146,7 +146,7 @@ class Parser
             if @token.get_tipo == "^" then
                 op, msg = le("^")
                 if op
-                    exp2, msg = self.Pot
+                    exp2, msg = self.Fator
                     if exp2 then
                         return Hash["tag" => "pot", "1" => exp1, "2" => exp2]
                     else
